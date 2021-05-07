@@ -1,0 +1,259 @@
+#N canvas 371 193 828 426 10;
+#X declare -lib Gem;
+#X text 465 58 GEM object;
+#X obj 31 283 cnv 15 430 80 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 62 286 Inlets:;
+#X text 61 333 Outlets:;
+#X obj 31 244 cnv 15 430 30 empty empty empty 20 12 0 14 -195568 -66577
+0;
+#X text 40 243 Arguments:;
+#X obj 30 39 cnv 15 430 200 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 472 115 cnv 15 170 250 empty empty empty 20 12 0 14 -228992
+-66577 0;
+#X text 476 98 Example:;
+#X obj 542 51 cnv 15 100 60 empty empty empty 20 12 0 14 -195568 -66577
+0;
+#X obj 473 220 cnv 15 160 60 empty empty empty 20 12 0 14 -24198 -66577
+0;
+#X text 75 63 Class: pix object;
+#X text 79 346 Outlet 1: gemlist;
+#X text 86 300 Inlet 1: gemlist;
+#X obj 477 157 pix_video;
+#X obj 477 178 pix_grey;
+#X text 544 167 change input size, f 10;
+#X text 42 90 Description: Calculates the Forward Fourier Transform
+using FFTW, f 64;
+#X text 54 44 Synopsis: [pix_fft];
+#X text 86 254 Optional size of a square image.;
+#X text 493 382 Fede Camara Halac 2017;
+#X text 492 397 fdch.github.io/tv;
+#X obj 471 20 declare -lib Gem;
+#X text 42 112 A 2-dimentional FFT is calculated whenever a bang is
+received. After the first calculation it is supposed to work much faster.
+, f 63;
+#X text 86 313 Inlet 1: Bang to execute 2D fft;
+#X text 46 181 You can provide an argument (n) to determine the size
+of a square image. Size will be interpreted as n*n. This is overriden
+if the input image has different dimensions.;
+#X text 45 151 Input is restricted to GREY-colorspace \, EVEN sized
+square images.;
+#X obj 478 321 pix_texture;
+#X obj 477 116 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 477 238 pix_fft;
+#X obj 602 13 loadbang;
+#N canvas 892 47 844 324 data 0;
+#X obj 56 54 list length;
+#X floatatom 62 155 5 0 0 0 - - -;
+#X obj 227 43 list length;
+#X floatatom 227 64 5 0 0 0 - - -;
+#X obj 56 18 inlet;
+#X obj 190 8 inlet;
+#X obj 133 104 t b b;
+#X obj 133 125 timer;
+#X floatatom 133 146 5 0 0 0 - - -;
+#X obj 218 155 list split 1;
+#X obj 314 100 / 2;
+#X floatatom 183 228 10 0 0 0 - - -;
+#X floatatom 283 230 10 0 0 0 - - -;
+#X obj 64 100 t a a a;
+#X obj 60 77 change;
+#X obj 183 204 list split 1;
+#X obj 282 206 list split 1;
+#X text 184 258 real;
+#X obj 316 140 + 1;
+#X msg 170 67 0;
+#X text 279 253 imaginary;
+#X obj 365 20 array define real;
+#X obj 365 41 array define imag;
+#X msg 388 85 resize \$1;
+#X obj 305 67 / 2;
+#X obj 384 167 array set real;
+#X obj 387 124 spigot;
+#X obj 387 145 t a b;
+#X msg 425 146 0;
+#X msg 429 122 1;
+#X obj 427 212 spigot;
+#X obj 427 233 t a b;
+#X msg 465 234 0;
+#X msg 469 210 1;
+#X obj 424 254 array set imag;
+#X obj 488 135 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 487 68 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 487 88 array max real;
+#X floatatom 487 109 10 0 0 0 - - -;
+#X obj 597 66 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X floatatom 597 107 10 0 0 0 - - -;
+#X obj 597 86 array min real;
+#X obj 539 152 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X floatatom 539 193 10 0 0 0 - - -;
+#X obj 649 150 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X floatatom 649 191 10 0 0 0 - - -;
+#X obj 538 172 array max imag;
+#X obj 649 170 array min imag;
+#X obj 553 37 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X connect 0 0 14 0;
+#X connect 2 0 3 0;
+#X connect 4 0 0 0;
+#X connect 4 0 9 0;
+#X connect 5 0 2 0;
+#X connect 6 0 7 0;
+#X connect 6 1 7 1;
+#X connect 7 0 8 0;
+#X connect 9 0 15 0;
+#X connect 9 0 26 0;
+#X connect 9 1 16 0;
+#X connect 9 1 30 0;
+#X connect 10 0 18 0;
+#X connect 13 0 10 0;
+#X connect 13 1 6 0;
+#X connect 13 2 1 0;
+#X connect 13 2 24 0;
+#X connect 14 0 13 0;
+#X connect 15 0 11 0;
+#X connect 16 0 12 0;
+#X connect 18 0 9 1;
+#X connect 19 0 14 0;
+#X connect 23 0 21 0;
+#X connect 23 0 22 0;
+#X connect 24 0 23 0;
+#X connect 26 0 27 0;
+#X connect 27 0 25 0;
+#X connect 27 1 28 0;
+#X connect 28 0 26 1;
+#X connect 29 0 26 1;
+#X connect 30 0 31 0;
+#X connect 31 0 34 0;
+#X connect 31 1 32 0;
+#X connect 32 0 30 1;
+#X connect 33 0 30 1;
+#X connect 35 0 29 0;
+#X connect 35 0 33 0;
+#X connect 36 0 37 0;
+#X connect 37 0 38 0;
+#X connect 39 0 41 0;
+#X connect 41 0 40 0;
+#X connect 42 0 46 0;
+#X connect 44 0 47 0;
+#X connect 46 0 43 0;
+#X connect 47 0 45 0;
+#X connect 48 0 36 0;
+#X connect 48 0 44 0;
+#X connect 48 0 42 0;
+#X connect 48 0 39 0;
+#X restore 492 295 pd data;
+#X msg 540 150 display \$1;
+#X obj 538 131 hradio 15 1 1 4 empty empty empty 0 -8 0 10 -262144
+-1 -1 2;
+#X obj 439 223 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 668 229 pix_fft;
+#X obj 678 338 pix_texture;
+#X obj 725 204 list length;
+#X floatatom 725 225 10 0 0 0 - - -;
+#X obj 681 206 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X msg 732 143 display \$1;
+#X obj 730 124 hradio 15 1 1 3 empty empty empty 0 -8 0 10 -262144
+-1 -1 0;
+#X obj 557 257 list length;
+#X floatatom 557 278 10 0 0 0 - - -;
+#X msg 554 51 create \, 1;
+#X obj 550 92 gemwin;
+#X msg 567 69 0 \, destroy;
+#X floatatom 340 238 5 0 0 0 - - -;
+#X obj 340 258 / 100;
+#X msg 340 279 squelch \$1;
+#X floatatom 353 305 5 0 0 0 - - -;
+#X msg 355 348 norm \$1;
+#X obj 355 327 / 100000;
+#X obj 647 129 pix_gray;
+#X obj 697 17 tgl 15 1 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 619 99 pix_video;
+#X floatatom 759 64 5 0 0 0 - - -;
+#X floatatom 780 88 5 0 0 0 - - -;
+#X obj 667 180 pix_crop 560 260 240 240;
+#X obj 478 202 pix_crop 560 260 240 240;
+#X obj 678 359 square 1;
+#X obj 476 346 square 4;
+#X obj 672 302 translate 3 1 1 0;
+#X obj 477 137 gemhead 2;
+#X obj 659 61 gemhead 3;
+#X msg 699 88 512;
+#X obj 689 109 t a a a a;
+#X msg 726 89 64;
+#X obj 572 331 spigot;
+#X obj 572 352 t a b;
+#X msg 609 351 0;
+#X msg 587 301 1;
+#X obj 719 253 spigot;
+#X obj 768 245 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X floatatom 416 322 5 0 0 0 - - -;
+#X floatatom 389 242 5 0 0 0 - - -;
+#X floatatom 389 204 5 0 0 0 - - -;
+#X obj 389 224 * 100;
+#X connect 14 0 15 0;
+#X connect 15 0 59 0;
+#X connect 27 0 61 0;
+#X connect 28 0 63 0;
+#X connect 29 0 27 0;
+#X connect 29 1 42 0;
+#X connect 29 1 68 0;
+#X connect 30 0 44 0;
+#X connect 32 0 29 0;
+#X connect 33 0 32 0;
+#X connect 34 0 29 0;
+#X connect 35 0 62 0;
+#X connect 35 1 37 0;
+#X connect 35 1 72 0;
+#X connect 36 0 60 0;
+#X connect 37 0 38 0;
+#X connect 39 0 35 0;
+#X connect 40 0 35 0;
+#X connect 41 0 40 0;
+#X connect 42 0 43 0;
+#X connect 44 0 45 0;
+#X connect 46 0 45 0;
+#X connect 47 0 48 0;
+#X connect 48 0 49 0;
+#X connect 49 0 29 0;
+#X connect 50 0 52 0;
+#X connect 51 0 29 0;
+#X connect 52 0 51 0;
+#X connect 53 0 58 0;
+#X connect 54 0 64 0;
+#X connect 55 0 53 0;
+#X connect 56 0 58 3;
+#X connect 57 0 58 4;
+#X connect 58 0 35 0;
+#X connect 59 0 29 0;
+#X connect 62 0 36 0;
+#X connect 63 0 14 0;
+#X connect 64 0 55 0;
+#X connect 65 0 66 0;
+#X connect 66 0 59 1;
+#X connect 66 1 59 2;
+#X connect 66 2 58 1;
+#X connect 66 3 58 2;
+#X connect 67 0 66 0;
+#X connect 68 0 69 0;
+#X connect 69 0 29 1;
+#X connect 69 1 70 0;
+#X connect 70 0 68 1;
+#X connect 71 0 68 1;
+#X connect 72 0 29 1;
+#X connect 73 0 72 1;
+#X connect 74 0 51 0;
+#X connect 75 0 49 0;
+#X connect 76 0 77 0;
+#X connect 77 0 75 0;
