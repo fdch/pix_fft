@@ -5,9 +5,9 @@
 // Calculates the Forward Fourier Transform using FFTW
 // 
 //
-// fdch.github.io/tv
-// camarafede@gmail.com
-// Fede Camara Halac 2017
+// fdch.github.io
+//
+// Fede Camara Halac 2021
 //
 //
 //
@@ -27,6 +27,7 @@
 #include "pix_fft.h"
 #include "Utils/Functions.h"//for CLAMP
 #include <cmath>
+#include <complex>
 #define PLANFLAG FFTW_ESTIMATE
 #define DEF 64
 
@@ -49,7 +50,7 @@ pix_fft :: pix_fft(t_floatarg n):
   m_convolve(false),
   m_display(1),
   m_squelch(10),
-  m_norm(0.0001)
+  m_norm(0.1)
 {
   n=n<=0?DEF:n;
   m_xsize=n;
@@ -87,7 +88,7 @@ pix_fft :: ~pix_fft()
   }
 }
 /////////////////////////////////////////////////////////
-// Utility functions
+// (Re)allocate arrays
 //
 /////////////////////////////////////////////////////////
 void pix_fft :: reallocAll(int n, int m)
@@ -117,6 +118,10 @@ void pix_fft :: reallocAll(int n, int m)
   m_enable=true;
 }
 
+/////////////////////////////////////////////////////////
+// Helper routine to copy rectangles from one place to another
+//
+/////////////////////////////////////////////////////////
 void pix_fft :: copyRect(unsigned char*s,unsigned char *t,bool dir,bool Yoff, bool Xoff)
 {
 // copyRect: 
@@ -134,6 +139,11 @@ void pix_fft :: copyRect(unsigned char*s,unsigned char *t,bool dir,bool Yoff, bo
       else *src++ = tar[step];
     }
 }
+
+/////////////////////////////////////////////////////////
+// Shift Zeroth frequency to center
+//
+/////////////////////////////////////////////////////////
 void pix_fft :: shiftFFT(unsigned char*data)
 {
   //original
@@ -148,6 +158,10 @@ void pix_fft :: shiftFFT(unsigned char*data)
   copyRect(q4,data, 1, 0, 1);
 }
 
+/////////////////////////////////////////////////////////
+// Fast Inverse square root (found somewhere online)
+//
+/////////////////////////////////////////////////////////
 double pix_fft :: rsqrt(double x)
 {
     double xhalf = 0.5 * x;
@@ -184,9 +198,8 @@ void pix_fft :: processGrayImage(imageStruct &image)
         // post("List output only");
         for(i=0;i<m_ysize;i++)
           for(j=0;j<m_xsize/2+1;j++) {
-            re = fftwOut[k][0];
-            im = fftwOut[k][1];
-            mag = sqrt(re*re + im*im);
+            std::complex<double> p (fftwOut[k][0],fftwOut[k][1]);
+            mag = std::abs(p);
             SETFLOAT(&m_buffer[i], mag);
           }
         outlet_list(m_dataOut, gensym("list"), m_size, m_buffer);
@@ -197,10 +210,9 @@ void pix_fft :: processGrayImage(imageStruct &image)
         // calculate magnitude
         for(i=0;i<m_ysize;i++)
           for(j=0;j<m_xsize/2+1;j++) {
-            re = fftwOut[k][0];
-            im = fftwOut[k][1];
-            mag = sqrt(re*re + im*im);
-            pixels[i*m_ysize+j] = CLAMP(255.0 * log10(1. + mag) * m_norm);
+            std::complex<double> p (fftwOut[k][0],fftwOut[k][1]);
+            mag = std::abs(p);
+            pixels[i*m_ysize+j] = CLAMP(255.0 * std::log10(1. + mag) * m_norm);
             k++;
         }
         //copy the non-computed symmetry back to the data
@@ -233,24 +245,24 @@ void pix_fft :: processGrayImage(imageStruct &image)
           // post("Filling pixels with ifft");
           for(i=0;i<m_insize;i++) {
               // pixels[i] = CLAMP(255*fftwOutR[i]/m_insize);
-              pixels[i] = CLAMP(255*log10(1e-20+fftwOutR[i]/m_size));
+              pixels[i] = CLAMP(255*std::log10(1e-20+fftwOutR[i]/m_size));
           }
 
         }
       break;
       case 3:
-          double mask;
+          double mask, angle;
           // post("Convolving");
           for(i=0;i<m_ysize;i++) {
             for(j=0;j<m_xsize/2+1;j++) {
-              re = fftwOut[k][0];
-              im = fftwOut[k][1];
-              mag = re*re + im*im;
+              std::complex<double> p (fftwOut[k][0],fftwOut[k][1]);
+              mag = std::abs(p);
+              angle = std::atan2(fftwOut[k][0], fftwOut[k][1]);
               mask = mag - m_mag2[k] * m_squelch;
               mask = mask<0.0?0.0:mask;
-              ctrl = sqrt(mask / (mag + 1e-20)) * m_norm;
-              fftwInC[k][0] = re * ctrl;
-              fftwInC[k][1] = im * ctrl;
+              ctrl = std::sqrt(mask / (mag + 1e-20)) * m_norm;
+              fftwInC[k][0] = std::cos(angle) * ctrl;
+              fftwInC[k][1] = std::sin(angle) * ctrl;
               k++;
             }
           }
@@ -259,7 +271,26 @@ void pix_fft :: processGrayImage(imageStruct &image)
           // post("Filling pixels with ifft");
           for(i=0;i<m_insize;i++) {
               // pixels[i] = CLAMP(255*fftwOutR[i]/m_insize);
-              pixels[i] = CLAMP(255*log10(1e-20+fftwOutR[i]/m_size));
+              pixels[i] = CLAMP(255*std::log10(1e-20+fftwOutR[i]/m_size));
+          }
+      break;
+      case 4:
+          for(i=0;i<m_ysize;i++) {
+            for(j=0;j<m_xsize/2+1;j++) {
+              std::complex<double> p (fftwOut[k][0],fftwOut[k][1]);
+              mag = std::abs(p);
+              angle = std::atan2(fftwOut[k][0], fftwOut[k][1]);
+              fftwInC[k][0] = std::cos(angle * m_squelch) * mag * m_norm;
+              fftwInC[k][1] = std::sin(angle * m_squelch) * mag * m_norm;
+              k++;
+            }
+          }
+          // post("executing IFFT");
+          fftw_execute(fftwPlanB);
+          // post("Filling pixels with ifft");
+          for(i=0;i<m_insize;i++) {
+              // pixels[i] = CLAMP(255*fftwOutR[i]/m_insize);
+              pixels[i] = CLAMP(255*std::log10(1e-20+fftwOutR[i]/m_size));
           }
       break;
     }
